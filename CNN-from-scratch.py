@@ -92,6 +92,5 @@ print("[HORIZONTAL image should have high rror]: " + str(error))
 # plt.imshow(img_dot.reshape(3,3), cmap="gray")
 # plt.show()
 
-print("profram end")
-# Program SLUTT
+print("Program end")
 # Millad Dagdoni
