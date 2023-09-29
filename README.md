@@ -1,6 +1,3 @@
-# CNN-from-scratch
-CNN from scratch in python
-
 # Text classifications?
 The algorithm can also be used for simple text classification by changing the data type to a vector embedding.
 
