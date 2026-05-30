@@ -3,81 +3,113 @@
 
 import numpy as np
 
-kernel_vertical = np.array([
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0,)])
+KERNEL_VERTICAL = np.array([
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+], dtype=float)
 
-kernel_horiz = np.array([
-    (0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0),
-    (1, 1, 1, 1, 1, 1, 1),
-    (0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0)])
+VERTICAL_IMAGE = np.array([
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0],
+], dtype=float)
 
-weights = np.random.random(9)
+HORIZONTAL_IMAGE = np.array([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+], dtype=float)
 
-img_data_vertical_line = np.array([
-    (0, 0, 0, 1, 1, 1, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0),
-    (0, 0, 0, 1, 1, 1, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0),
-    (0, 0, 0, 1, 1, 1, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0),
-    (0, 0, 0, 1, 1, 0, 0, 0, 0)])  # (9,9)
+def relu(x):
+    return np.maximum(0, x)
 
-img_data_horiz_line = np.array([
-    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-    (1, 1, 0, 1, 1, 1, 0, 1, 1),
-    (1, 1, 1, 1, 1, 1, 1, 1, 1),
-    (0, 0, 1, 0, 0, 0, 1, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 0)])  # (9,9)
 
-relu = lambda x: (x >= 0) * x  # returns x if x > 0, return 0 otherwise
-relu2deriv = lambda x: x > 0  # returns 1 for input > 0, return 0 otherwise
+def relu_derivative(x):
+    return x > 0
 
-def conv(img_data, kernel):
-    layer_0_data_input_list = list()
-    for i in range(3):
-        for j in range(3):
-            layer_0 = img_data[i: (i + 7), j: (j + 7)]
-            layer_1 = np.sum(layer_0 * kernel)
-            layer_0_data_input_list.append(layer_1)
-    return np.array(layer_0_data_input_list)
+def conv_valid(image, kernel):
+    """Return the valid convolution output as a flat vector."""
+    image_height, image_width = image.shape
+    kernel_height, kernel_width = kernel.shape
 
-alpha = 0.04
-y = 1
+    output = []
 
-for training_run in range(115):
-    # Forward propegation
-    layer_1 = conv(img_data_vertical_line, kernel_vertical)
-    layer_2 = relu(np.dot(layer_1, weights))
+    for row in range(image_height - kernel_height + 1):
+        for col in range(image_width - kernel_width + 1):
+            patch = image[row:row + kernel_height, col:col + kernel_width]
+            output.append(np.sum(patch * kernel))
 
-    # Cost
-    error = (layer_2 - y) ** 2
-    
-    # Backpropegation
-    layer_2_delta = ((layer_2 - y) * relu2deriv(layer_1))
-    weights -= alpha * (layer_2_delta)
-    if (training_run % 10 == 9):
-        print("[vertical image error]: ", error)
+    return np.array(output, dtype=float)
 
-# Test HORIZONTAL image should have high error
-layer_1 = conv(img_data_horiz_line, kernel_horiz)
-layer_2 = relu(np.dot(layer_1, weights))
-error = (layer_2 - y) ** 2
 
-print("[HORIZONTAL image should have high error]: ", error)
-print("Program end")
+def predict(image, kernel, weights):
+    features = conv_valid(image, kernel)
+    raw_output = np.dot(features, weights)
+    prediction = relu(raw_output)
+    return prediction, raw_output, features
+
+
+def train(images, targets, kernel, epochs=200, learning_rate=0.001):
+    np.random.seed(1)
+
+    feature_count = conv_valid(images[0], kernel).shape[0]
+    weights = np.random.random(feature_count)
+
+    for epoch in range(epochs):
+        total_error = 0
+
+        for image, target in zip(images, targets):
+            prediction, raw_output, features = predict(image, kernel, weights)
+
+            error = prediction - target
+            total_error += error ** 2
+
+            gradient = error * relu_derivative(raw_output) * features
+            weights -= learning_rate * gradient
+
+        if epoch % 20 == 0:
+            print(f"epoch {epoch:03d} error: {total_error:.6f}")
+
+    return weights
+
+
+def main():
+    images = [VERTICAL_IMAGE, HORIZONTAL_IMAGE]
+    targets = [1, 0]
+
+    weights = train(
+        images=images,
+        targets=targets,
+        kernel=KERNEL_VERTICAL,
+        epochs=200,
+        learning_rate=0.001,
+    )
+
+    vertical_prediction, _, _ = predict(VERTICAL_IMAGE, KERNEL_VERTICAL, weights)
+    horizontal_prediction, _, _ = predict(HORIZONTAL_IMAGE, KERNEL_VERTICAL, weights)
+
+    print()
+    print(f"Vertical image prediction:   {vertical_prediction:.4f}")
+    print(f"Horizontal image prediction: {horizontal_prediction:.4f}")
+    print("Program end")
+
+
+if __name__ == "__main__":
+    main()
